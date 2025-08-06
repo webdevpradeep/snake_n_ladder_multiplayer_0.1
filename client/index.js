@@ -1,4 +1,4 @@
-const socket = io('ws://192.168.1.36:5000');
+const socket = io('ws://192.168.196.139:5000');
 
 socket.on('info', (msg) => {
   console.log(msg);
