@@ -1,30 +1,35 @@
-import express from 'express'
-import { createServer } from 'node:http'
-import { Server } from 'socket.io'
+import express from 'express';
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
 
-const app = express()
-const httpServer = createServer(app)
+const app = express();
+const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*'
-  }
-})
+    origin: '*',
+  },
+});
 
 io.on('connection', (socket) => {
   console.log('a user connected');
-  socket.emit('info', "hello from server")
+  socket.emit('info', 'hello from server');
   socket.on('info', (msg) => {
     console.log(msg);
-  })
+  });
+  socket.on('play', () => {
+    const diceValue = Math.ceil(Math.random() * 6);
+    console.log(diceValue);
+    io.emit('play', diceValue);
+  });
   socket.on('disconnect', (msg) => {
-    console.log(msg)
-    console.log(socket.id)
-  })
-})
+    console.log(msg);
+    console.log(socket.id);
+  });
+});
 
 httpServer.listen(5000, (e) => {
   if (e) {
     return console.log(e);
   }
-  console.log("server started on 5000");
-})
+  console.log('server started on 5000');
+});
