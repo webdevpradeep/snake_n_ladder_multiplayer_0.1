@@ -7,11 +7,13 @@ let turn = '';
 let clients = [
   // {
   //   name: "apple",
-  //   socketId: "djhgfds"
+  //   socketId: "5wPtBoGlK0v-7FLfAAAF",
+  //   position: 5
   // },
   // {
   //   name: "apple",
-  //   socketId: "djhgfds"
+  //   socketId: "sHAHujgtGHV-7FLfAAAF"
+  //   position: 10
   // }
 ];
 
@@ -31,9 +33,11 @@ io.on('connection', (socket) => {
       return;
     }
     if (turn === '') {
-      turn = name;
+      turn = socket.id;
     }
-    clients.push({ name, socketId: socket.id });
+    socket.emit('info', 'hello from server');
+    clients.push({ name, socketId: socket.id, position: 1 });
+    io.emit('game', { clients, turn });
     console.log(clients);
   });
   socket.on('play', () => {
@@ -49,23 +53,34 @@ io.on('connection', (socket) => {
       return;
     }
     const client = clientArr[0];
-    console.log(client, index, turn);
-    if (turn === client.name) {
+    if (turn === client.socketId) {
       const diceValue = Math.ceil(Math.random() * 6);
       console.log(`Dice value : ${diceValue}`);
-      io.emit('play', diceValue);
-      index = (index + 1) % clients.length;
-      turn = clients[index].name;
-      console.log(turn);
+      client.position += diceValue;
+      if (client.position > 100) {
+        client.position = 100;
+      }
+      if (diceValue !== 6) {
+        index = (index + 1) % clients.length;
+        turn = clients[index].socketId;
+      }
+      console.log(`Next turn is : ${clients[index].name}, ${turn}`);
+      io.emit('game', { diceValue, clients, turn });
+    } else {
+      console.log(`Not your turn ${client.name} : ${client.socketId}`);
     }
   });
-  socket.on('game', () => {
-    io.emit('game', { clients, turn });
-  });
+  // socket.on('game', () => {
+  //   io.emit('game', { clients, turn })
+  // })
   socket.on('disconnect', (msg) => {
     console.log(msg, socket.id);
     clients = clients.filter((e) => e.socketId != socket.id);
-    console.log(clients);
+    if (clients.length === 0) {
+      turn = '';
+    } else if (clients.length === 1) {
+      turn = clients[0].socketId;
+    }
   });
 });
 
