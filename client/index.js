@@ -6,6 +6,9 @@ const diceValueEle = document.getElementById('dice');
 diceValueEle.innerHTML = '';
 
 const userName = prompt('enter your name');
+const pwanValue = prompt('enter number 0: blue, 1:yellow, 2:red, 3: green');
+const colorList = ['blue', 'yellow', 'red', 'green'];
+const pwanColor = colorList[pwanValue];
 socket.on('info', (msg) => {
   console.log(msg);
   console.log(`Name: ${userName}, ID : ${socket.id}`);
@@ -126,40 +129,6 @@ const path = {
   100: { x: 0, y: 0 },
 };
 
-const snake = [
-  { h: 18, t: 1 },
-  { h: 8, t: 4 },
-  { h: 26, t: 10 },
-  { h: 39, t: 5 },
-  { h: 51, t: 6 },
-  { h: 54, t: 36 },
-  { h: 56, t: 1 },
-  { h: 60, t: 23 },
-  { h: 75, t: 28 },
-  { h: 83, t: 45 },
-  { h: 85, t: 59 },
-  { h: 90, t: 48 },
-  { h: 92, t: 25 },
-  { h: 97, t: 87 },
-  { h: 99, t: 63 },
-];
-
-const ladder = [
-  { from: 3, to: 20 },
-  { from: 6, to: 14 },
-  { from: 11, to: 28 },
-  { from: 15, to: 34 },
-  { from: 17, to: 74 },
-  { from: 22, to: 37 },
-  { from: 38, to: 59 },
-  { from: 49, to: 67 },
-  { from: 57, to: 76 },
-  { from: 61, to: 78 },
-  { from: 73, to: 86 },
-  { from: 81, to: 98 },
-  { from: 88, to: 91 },
-];
-
 const canvasSize = 600;
 const blockSize = canvasSize / 10;
 
@@ -187,8 +156,8 @@ const drawCircle = (x, y, r, fillColor) => {
   ctx.arc(x, y, r, 0, 2 * Math.PI);
   ctx.fillStyle = fillColor;
   ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'blue';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'white';
   ctx.stroke();
 };
 
@@ -223,6 +192,10 @@ const draw = (clients) => {
   ctx.drawImage(webpImage, 0, 0, canvasSize, canvasSize); // Example with custom position and size
   // draw pawn
   clients.forEach((e) => {
-    drawPawn(e.position, 'green');
+    if (e.socketId === socket.id) {
+      drawPawn(e.position, pwanColor);
+    } else {
+      drawPawn(e.position, 'cyan');
+    }
   });
 };
