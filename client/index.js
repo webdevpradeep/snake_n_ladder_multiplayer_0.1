@@ -1,4 +1,4 @@
-const socket = io('ws://127.0.0.1:5000');
+const maxNumberOfPawns = 12;
 
 const turnEle = document.getElementById('turn');
 turnEle.innerHTML = ' ';
@@ -6,19 +6,31 @@ const diceValueEle = document.getElementById('dice');
 diceValueEle.innerHTML = '';
 
 const userName = prompt('enter your name');
-const pwanValue = prompt('enter number 0: blue, 1:yellow, 2:red, 3: green');
-const colorList = ['blue', 'yellow', 'red', 'green'];
-const pwanColor = colorList[pwanValue];
+const pawnValue =
+  prompt('enter number 0: blue, 1:yellow, 2:red, 3: green') || 0;
+
+const totalPawnImageEleList = [];
+for (let i = 0; i < maxNumberOfPawns; i++) {
+  const imageElement = new Image(`img${i}`);
+  imageElement.src = `./pawns/${i}.png`;
+  totalPawnImageEleList.push(imageElement);
+}
+const pawnEle = totalPawnImageEleList[pawnValue];
+const pawnImageEleList = totalPawnImageEleList.filter((e) => e !== pawnEle);
+
+const socket = io('ws://192.168.1.36:5000');
+
 socket.on('info', (msg) => {
   console.log(msg);
-  console.log(`Name: ${userName}, ID : ${socket.id}`);
+  console.log(`Name: ${userName}, ID: ${socket.id} `);
 });
 socket.on('game', ({ diceValue, clients, turn }) => {
   console.log(clients, turn, socket.id);
   if (turn === socket.id) {
     turnEle.innerHTML = 'Your Turn';
   } else {
-    turnEle.innerHTML = '';
+    const c = clients.filter((e) => e.socketId == turn);
+    turnEle.innerHTML = `Turn: ${c[0].name} `;
   }
   diceValueEle.innerHTML = diceValue ? diceValue : '';
   draw(clients);
@@ -169,12 +181,13 @@ const drawLine = (x1, y1, x2, y2) => {
   ctx.stroke();
 };
 
-const drawPawn = (pathNum, color) => {
-  drawCircle(
-    blockSize / 2 + blockSize * path[pathNum].x,
-    blockSize / 2 + blockSize * path[pathNum].y,
-    blockSize / 2 - blockSize / 6,
-    color
+const drawPawn = (img, pathNum) => {
+  ctx.drawImage(
+    img,
+    blockSize / 6 + blockSize * path[pathNum].x,
+    blockSize / 6 + blockSize * path[pathNum].y,
+    blockSize - blockSize / 3,
+    blockSize - blockSize / 3
   );
 };
 
@@ -192,10 +205,12 @@ const draw = (clients) => {
   ctx.drawImage(webpImage, 0, 0, canvasSize, canvasSize); // Example with custom position and size
   // draw pawn
   clients.forEach((e) => {
+    drawPawn(
+      pawnImageEleList[Math.floor(Math.random() * pawnImageEleList.length)],
+      e.position
+    );
     if (e.socketId === socket.id) {
-      drawPawn(e.position, pwanColor);
-    } else {
-      drawPawn(e.position, 'cyan');
+      drawPawn(pawnEle, e.position);
     }
   });
 };
